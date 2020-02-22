@@ -17,9 +17,14 @@ variable "aws_region" {
   default     = "ap-south-1"
 }
 
+variable "aws_az" {
+  description = "AWS Availability Zone to launch servers."
+  default     = "ap-south-1a"
+}
+
 # Ubuntu Precise 12.04 LTS (x64)
 variable "aws_amis" {
   default = {
-    ap-south-1 = "ami-0217a85e28e625474"
+    ap-south-1 = "ami-0d9462a653c34dab7"
   }
 }
