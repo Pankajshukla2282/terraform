@@ -111,6 +111,10 @@ resource "aws_instance" "web" {
     user = "ec2-user"
     host = "${self.public_ip}"
     # The connection will use the local SSH agent for authentication.
+    agent = false
+
+    type = "ssh"
+    private_key = "${file(var.private_key_path)}"
   }
 
   instance_type = "t2.micro"
@@ -136,8 +140,8 @@ resource "aws_instance" "web" {
   provisioner "remote-exec" {
     inline = [
       "sudo yum -y update",
-      "sudo yum -y install nginx",
-      "sudo service nginx start",
+      "sudo yum -y install httpd",
+      "sudo service httpd start",
     ]
   }
 }
