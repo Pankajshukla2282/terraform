@@ -21,10 +21,17 @@ resource "aws_route" "internet_access" {
 }
 
 # Create a subnet to launch our instances into
-resource "aws_subnet" "terraform1" {
+resource "aws_subnet" "tf1-sub1a" {
   vpc_id                  = "${aws_vpc.terraform1.id}"
-  cidr_block              = "10.0.1.0/24"
-  availability_zone     = "${var.aws_az}"
+  cidr_block              = "10.0.1.0/26"
+  availability_zone     = "${var.aws_az1}"
+  map_public_ip_on_launch = true
+}
+
+resource "aws_subnet" "tf1-sub1b" {
+  vpc_id                  = "${aws_vpc.terraform1.id}"
+  cidr_block              = "10.0.1.64/26"
+  availability_zone     = "${var.aws_az2}"
   map_public_ip_on_launch = true
 }
 
@@ -83,19 +90,36 @@ resource "aws_security_group" "terraform1" {
   }
 }
 
-resource "aws_elb" "web" {
-  name = "terraform-example-elb"
-
-  subnets         = ["${aws_subnet.terraform1.id}"]
+resource "aws_lb" "web" {
+  name               = "test-lb-tf"
+  internal           = false
+  load_balancer_type = "application"
+  subnets         = [aws_subnet.tf1-sub1a.id, aws_subnet.tf1-sub1b.id]
   security_groups = ["${aws_security_group.elb.id}"]
-  instances       = ["${aws_instance.web.id}"]
+}
 
-  listener {
-    instance_port     = 80
-    instance_protocol = "http"
-    lb_port           = 80
-    lb_protocol       = "http"
+resource "aws_lb_target_group" "web" {
+  name     = "tf-example-lb-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.terraform1.id}"
+}
+
+resource "aws_lb_listener" "web" {
+  load_balancer_arn = "${aws_lb.web.arn}"
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.web.arn}"
   }
+}
+
+resource "aws_lb_target_group_attachment" "web" {
+  target_group_arn = "${aws_lb_target_group.web.arn}"
+  target_id        = "${aws_instance.web.id}"
+  port             = 80
 }
 
 resource "aws_key_pair" "auth" {
@@ -132,8 +156,8 @@ resource "aws_instance" "web" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.terraform1.id}"
-
+  subnet_id = "${aws_subnet.tf1-sub1a.id}"
+  
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
   # this should be on port 80

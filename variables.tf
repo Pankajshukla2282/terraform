@@ -6,6 +6,7 @@ connect.
 
 Example: ~/.ssh/terraform.pub
 DESCRIPTION
+  default     = "~/.ssh/terraform.pub"
 }
 
 variable "private_key_path" {
@@ -16,10 +17,12 @@ connect.
 
 Example: ~/.ssh/terraform.pem
 DESCRIPTION
+  default     = "~/.ssh/terraform.pem"
 }
 
 variable "key_name" {
   description = "Desired name of AWS key pair"
+  default     = "terraform"
 }
 
 variable "aws_region" {
@@ -27,12 +30,15 @@ variable "aws_region" {
   default     = "ap-south-1"
 }
 
-variable "aws_az" {
+variable "aws_az1" {
   description = "AWS Availability Zone to launch servers."
   default     = "ap-south-1a"
 }
+variable "aws_az2" {
+  description = "AWS Availability Zone to launch servers."
+  default     = "ap-south-1b"
+}
 
-# Ubuntu Precise 12.04 LTS (x64)
 variable "aws_amis" {
   default = {
     ap-south-1 = "ami-0d9462a653c34dab7"
